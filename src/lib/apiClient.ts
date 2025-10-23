@@ -8,6 +8,12 @@ export const apiClient = async (path: string, method = 'GET', body?: any) => {
   // Decide headers
   let headers: Record<string, string> = {};
 
+  // Add Authorization header from localStorage if token exists
+  const token = localStorage.getItem('token');
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   // Only set JSON headers if body is not FormData
   if (!(body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';

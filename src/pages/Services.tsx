@@ -165,12 +165,7 @@ const Services = () => {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-popover">
                         <DropdownMenuItem>Edit Service</DropdownMenuItem>
-                        <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          {service.status === "active"
-                            ? "Deactivate"
-                            : "Activate"}
-                        </DropdownMenuItem>
+                   
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -180,28 +175,10 @@ const Services = () => {
           </Table>
 
           {/* Pagination */}
-          <div className="flex justify-between items-center mt-4">
-            <div>
-              Page {page + 1} of {totalPages}
-            </div>
-            <div className="space-x-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handlePrevPage}
-                disabled={page === 0}
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleNextPage}
-                disabled={page >= totalPages - 1}
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
+      <div className="flex justify-between items-center mt-4">
+            <Button onClick={handlePrevPage} disabled={page === 0}>Previous</Button>
+            <span>Page {page + 1} of {Math.max(1, Math.ceil((serviceslist?.meta?.total || 0) / pageSize))}</span>
+            <Button onClick={handleNextPage} disabled={page + 1 >= Math.ceil((serviceslist?.meta?.total || 0) / pageSize)}>Next</Button>
           </div>
         </Card>
       </div>

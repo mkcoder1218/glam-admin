@@ -8,6 +8,7 @@ import {
   Coins,
   Menu,
   UserCircle,
+  UserCheck2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -27,8 +28,10 @@ const menuItems = [
   { title: "Users", url: "/users", icon: Users },
   { title: "Bookings", url: "/bookings", icon: Calendar },
   { title: "Services", url: "/services", icon: Scissors },
+  { title: "Role Manager", url: "/roleaccess", icon: UserCheck2 },
   { title: "Promo Codes", url: "/promo-codes", icon: Tag },
   { title: "Coins", url: "/coins", icon: Coins },
+  { title: "Gallery management", url: "/gallery", icon: Coins },
 ];
 
 export const AdminSidebar = () => {
@@ -39,7 +42,7 @@ export const AdminSidebar = () => {
       <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
         {state !== "collapsed" && (
           <h2 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Salon Admin
+            Glam Nest Admin
           </h2>
         )}
         <SidebarTrigger>
