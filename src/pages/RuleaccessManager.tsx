@@ -1,15 +1,34 @@
-
-
-import React, { useEffect, useState } from "react";
-
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+"use client";
+import React, { useState } from "react";
+import {
+  Button,
+} from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Trash2 } from "lucide-react";
 import { AdminLayout } from "@/components/AdminLayout";
 import { api } from "@/lib/api";
 
@@ -25,29 +44,38 @@ interface AccessRule {
   description: string;
 }
 
-export default function RoleAccessManager() {
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [accessRules, setAccessRules] = useState<AccessRule[]>([]);
-  const [loading, setLoading] = useState(false);
+type DeleteTarget = { id: string; name: string; type: "role" | "access" } | null;
 
+export default function RoleAccessManager() {
+  const [loading, setLoading] = useState(false);
   const [newRole, setNewRole] = useState({ name: "", description: "" });
-  const [newAccessRule, setNewAccessRule] = useState({ name: "", description: "" });
+  const [newAccessRule, setNewAccessRule] = useState({
+    name: "",
+    description: "",
+  });
   const [selectedRoleId, setSelectedRoleId] = useState<string>("");
   const [selectedAccessRuleId, setSelectedAccessRuleId] = useState<string>("");
-      const {data:resrole,isLoading:roleLoading,mutate:rolemutate} =  api.role.getAll();
-      const {data:resroleaccess,isLoading:roleaccessLoading,mutate:roleaccessmutate} =  api.roleAccess.getAll();
 
+  const {
+    data: resrole,
+    mutate: rolemutate,
+  } = api.role.getAll();
+  const {
+    data: resroleaccess,
+    mutate: roleaccessmutate,
+  } = api.roleAccess.getAll();
 
-
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleCreateRole = async () => {
     if (!newRole.name) return toast.error("Role name required");
     try {
       setLoading(true);
-      api.role.create(newRole as any);
+      await api.role.create(newRole as any);
       toast.success("Role created successfully");
       setNewRole({ name: "", description: "" });
-        rolemutate()
+      rolemutate();
     } catch (err: any) {
       toast.error(err.message || "Failed to create role");
     } finally {
@@ -59,10 +87,10 @@ export default function RoleAccessManager() {
     if (!newAccessRule.name) return toast.error("Access rule name required");
     try {
       setLoading(true);
-      await api.role.create(newAccessRule as any);
+      await api.roleAccess.create(newAccessRule as any);
       toast.success("Access Rule created successfully");
       setNewAccessRule({ name: "", description: "" });
-roleaccessmutate()
+      roleaccessmutate();
     } catch (err: any) {
       toast.error(err.message || "Failed to create access rule");
     } finally {
@@ -73,10 +101,9 @@ roleaccessmutate()
   const handleCreateRoleAccessRule = async () => {
     if (!selectedRoleId || !selectedAccessRuleId)
       return toast.error("Select both Role and Access Rule");
-
     try {
       setLoading(true);
-      await api.roleAccessrule.create( {
+      await api.roleAccessrule.create({
         role_id: selectedRoleId,
         access_rule_id: selectedAccessRuleId,
       } as any);
@@ -90,123 +117,273 @@ roleaccessmutate()
     }
   };
 
+  const confirmDelete = (target: DeleteTarget) => {
+    setDeleteTarget(target);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      setLoading(true);
+      if (deleteTarget.type === "role") {
+        await api.role.delete(deleteTarget.id);
+        rolemutate();
+      } else {
+        await api.roleAccess.delete(deleteTarget.id);
+        roleaccessmutate();
+      }
+      toast.success(`"${deleteTarget.name}" deleted successfully`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete");
+    } finally {
+      setLoading(false);
+      setIsDeleteDialogOpen(false);
+      setDeleteTarget(null);
+    }
+  };
+
   return (
     <AdminLayout>
-    <div className="container py-10 space-y-10">
-      <h1 className="text-3xl font-bold text-center">Role & Access Rule Manager</h1>
+      <div className="container py-10 space-y-10">
+        <h1 className="text-3xl font-bold text-center">
+          Role & Access Rule Manager
+        </h1>
 
-      {/* Create Role */}
-      <Card className="shadow-card">
-        <CardHeader>
-          <CardTitle>Create Role</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="roleName">Role Name</Label>
-              <Input
-                id="roleName"
-                placeholder="e.g. Admin"
-                value={newRole.name}
-                onChange={(e) => setNewRole({ ...newRole, name: e.target.value })}
-              />
+        {/* Create Role */}
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle className="flex justify-between items-center">
+              <span>Create Role</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Role Name</Label>
+                <Input
+                  placeholder="e.g. Admin"
+                  value={newRole.name}
+                  onChange={(e) =>
+                    setNewRole({ ...newRole, name: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <Label>Description</Label>
+                <Input
+                  placeholder="Describe the role"
+                  value={newRole.description}
+                  onChange={(e) =>
+                    setNewRole({ ...newRole, description: e.target.value })
+                  }
+                />
+              </div>
             </div>
-            <div>
-              <Label htmlFor="roleDesc">Description</Label>
-              <Input
-                id="roleDesc"
-                placeholder="Describe the role"
-                value={newRole.description}
-                onChange={(e) => setNewRole({ ...newRole, description: e.target.value })}
-              />
-            </div>
-          </div>
-          <Button onClick={handleCreateRole} disabled={loading}>
-            {loading ? "Creating..." : "Create Role"}
-          </Button>
-        </CardContent>
-      </Card>
+            <Button onClick={handleCreateRole} disabled={loading}>
+              {loading ? "Creating..." : "Create Role"}
+            </Button>
 
-      <Separator />
+            <Separator className="my-4" />
 
-      {/* Create Access Rule */}
-      <Card className="shadow-card">
-        <CardHeader>
-          <CardTitle>Create Access Rule</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="ruleName">Rule Name</Label>
-              <Input
-                id="ruleName"
-                placeholder="e.g. read_user"
-                value={newAccessRule.name}
-                onChange={(e) => setNewAccessRule({ ...newAccessRule, name: e.target.value })}
-              />
+              <h3 className="font-semibold mb-2">Existing Roles</h3>
+              <div className="grid gap-2">
+                {resrole?.data?.length ? (
+                  resrole.data.map((role: Role) => (
+                    <div
+                      key={role.id}
+                      className="flex items-center justify-between border rounded-lg px-3 py-2 hover:bg-muted/40 transition"
+                    >
+                      <div>
+                        <p className="font-medium">{role.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {role.description || "No description"}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() =>
+                          confirmDelete({
+                            id: role.id,
+                            name: role.name,
+                            type: "role",
+                          })
+                        }
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No roles found.
+                  </p>
+                )}
+              </div>
             </div>
-            <div>
-              <Label htmlFor="ruleDesc">Description</Label>
-              <Input
-                id="ruleDesc"
-                placeholder="Describe the rule"
-                value={newAccessRule.description}
-                onChange={(e) => setNewAccessRule({ ...newAccessRule, description: e.target.value })}
-              />
-            </div>
-          </div>
-          <Button onClick={handleCreateAccessRule} disabled={loading}>
-            {loading ? "Creating..." : "Create Access Rule"}
-          </Button>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <Separator />
+        {/* Create Access Rule */}
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle>Create Access Rule</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Rule Name</Label>
+                <Input
+                  placeholder="e.g. read_user"
+                  value={newAccessRule.name}
+                  onChange={(e) =>
+                    setNewAccessRule({
+                      ...newAccessRule,
+                      name: e.target.value,
+                    })
+                  }
+                />
+              </div>
+              <div>
+                <Label>Description</Label>
+                <Input
+                  placeholder="Describe the rule"
+                  value={newAccessRule.description}
+                  onChange={(e) =>
+                    setNewAccessRule({
+                      ...newAccessRule,
+                      description: e.target.value,
+                    })
+                  }
+                />
+              </div>
+            </div>
+            <Button onClick={handleCreateAccessRule} disabled={loading}>
+              {loading ? "Creating..." : "Create Access Rule"}
+            </Button>
 
-      {/* Create Role Access Rule */}
-      <Card className="shadow-card">
-        <CardHeader>
-          <CardTitle>Link Role to Access Rule</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Separator className="my-4" />
+
             <div>
-              <Label>Select Role</Label>
-              <Select value={selectedRoleId} onValueChange={setSelectedRoleId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a role" />
-                </SelectTrigger>
-                <SelectContent>
-                  {resrole?.data?.map((role) => (
-                    <SelectItem key={role.id} value={role.id}>
-                      {role.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <h3 className="font-semibold mb-2">Existing Access Rules</h3>
+              <div className="grid gap-2">
+                {resroleaccess?.data?.length ? (
+                  resroleaccess.data.map((rule: AccessRule) => (
+                    <div
+                      key={rule.id}
+                      className="flex items-center justify-between border rounded-lg px-3 py-2 hover:bg-muted/40 transition"
+                    >
+                      <div>
+                        <p className="font-medium">{rule.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {rule.description || "No description"}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() =>
+                          confirmDelete({
+                            id: rule.id,
+                            name: rule.name,
+                            type: "access",
+                          })
+                        }
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No access rules found.
+                  </p>
+                )}
+              </div>
             </div>
-            <div>
-              <Label>Select Access Rule</Label>
-              <Select value={selectedAccessRuleId} onValueChange={setSelectedAccessRuleId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose an access rule" />
-                </SelectTrigger>
-                <SelectContent>
-                  {resroleaccess?.data?.map((rule) => (
-                    <SelectItem key={rule.id} value={rule.id}>
-                      {rule.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          </CardContent>
+        </Card>
+
+        {/* Link Role to Access Rule */}
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle>Link Role to Access Rule</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>Select Role</Label>
+                <Select value={selectedRoleId} onValueChange={setSelectedRoleId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {resrole?.data?.map((role: Role) => (
+                      <SelectItem key={role.id} value={role.id}>
+                        {role.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Select Access Rule</Label>
+                <Select
+                  value={selectedAccessRuleId}
+                  onValueChange={setSelectedAccessRuleId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose an access rule" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {resroleaccess?.data?.map((rule: AccessRule) => (
+                      <SelectItem key={rule.id} value={rule.id}>
+                        {rule.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
-          <Button onClick={handleCreateRoleAccessRule} disabled={loading}>
-            {loading ? "Linking..." : "Link Role & Rule"}
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
-      </AdminLayout>
+            <Button onClick={handleCreateRoleAccessRule} disabled={loading}>
+              {loading ? "Linking..." : "Link Role & Rule"}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Confirm Deletion</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete{" "}
+                <strong>{deleteTarget?.name}</strong>? This action cannot be
+                undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleConfirmDelete}
+                disabled={loading}
+              >
+                {loading ? "Deleting..." : "Delete"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </AdminLayout>
   );
 }

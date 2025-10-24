@@ -138,7 +138,14 @@ const BookingDetailsModal = ({
 const Bookings = () => {
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined);
+const [hoveredCheckMap, setHoveredCheckMap] = useState<Record<string, boolean>>({});
+const handleMouseEnter = (id: string) => {
+  setHoveredCheckMap((prev) => ({ ...prev, [id]: true }));
+};
 
+const handleMouseLeave = (id: string) => {
+  setHoveredCheckMap((prev) => ({ ...prev, [id]: false }));
+};
   const userQuery: QueryParams = useMemo(
     () => ({
       search: searchQuery
@@ -192,6 +199,7 @@ const Bookings = () => {
                 <TableHead>Service</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Time</TableHead>
+                <TableHead>Phone number</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Check-in</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -204,6 +212,7 @@ const Bookings = () => {
                   <TableCell>{b.Service.name}</TableCell>
                   <TableCell>{moment(b.date).format("YYYY-MM-DD")}</TableCell>
                   <TableCell>{moment(b.time, "HH:mm").format("hh:mm A")}</TableCell>
+                  <TableCell>{<a href={`tel:${b.User?.phone_number}`} className="transition-all duration-300 hover:text-blue-500">{b.User?.phone_number}</a>}</TableCell>
                   <TableCell>
                     <Select
                       value={b.status}
@@ -222,22 +231,24 @@ const Bookings = () => {
                   </TableCell>
                   <TableCell>
                     {b.is_checked_in ? (
-                      <Badge
-                        variant="default"
-                        className="bg-green-500 cursor-pointer"
-                        onClick={() => {
-                          api.booking.update(b.id, { is_checked_in: false }).then(() => mutate());
-                        }}
-                      >
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Checked In
-                      </Badge>
+                        <Badge
+      variant="default"
+      className="bg-green-500 cursor-pointer w-[100px] h-[18px] whitespace-nowrap flex items-center"
+      onClick={() => {
+        api.booking.uncheck(b?.id).then(() => mutate());
+      }}
+      onMouseEnter={() => handleMouseEnter(b.id)}
+      onMouseLeave={() => handleMouseLeave(b.id)}
+    >
+      <CheckCircle className="h-3 w-3 mr-1" />
+      {hoveredCheckMap[b.id] ? "Uncheck" : "Checked In"}
+    </Badge>
                     ) : (
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          api.booking.update(b.id, { is_checked_in: true }).then(() => mutate());
+                          api.booking.checkIn(b?.id).then(() => mutate());
                         }}
                       >
                         Check In

@@ -21,6 +21,8 @@ export const api = {
   roleAccessrule: createResource<RoleAccessRoot>('/api/roleaccessrule'),
   gallery: createResource<galleryRoot>('/api/gallery'),
   booking: createResource<BookingRoot>('/api/booking'),
+  checkin: createResource<BookingRoot>('/api/booking'),
+  uncheck: createResource<BookingRoot>('/api/booking'),
   service: createResource<ServiceRoot>('/api/service'),
   promocode: createResource<PromoRoot>('/api/promocode'),
   serviceCategory: createResource<serviceCategoryRoot>('/api/servicecategory'),

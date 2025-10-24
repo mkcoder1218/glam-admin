@@ -8,6 +8,8 @@ export interface CRUDResource<T> {
   create: (data: Partial<T>) => Promise<T>;
   update: (id: string | number, data: Partial<T>) => Promise<T>;
   delete: (id: string | number) => Promise<void>;
+  checkIn:(id: string | number, data?: Partial<T>)=>Promise<T>;
+  uncheck:(id: string | number, data?: Partial<T>)=>Promise<T>;
 }
 
 export function createResource<T>(basePath: string): CRUDResource<T> {
@@ -57,6 +59,16 @@ export function createResource<T>(basePath: string): CRUDResource<T> {
     delete: async (id) => {
       await apiClient(`${basePath}/${id}`, 'DELETE');
       mutate(basePath);
+    },
+      checkIn: async (id, data) => {
+      const res = await apiClient(`${basePath}/${id}/checkin`, 'POST', data);
+      mutate(`${basePath}/${id}`); // Revalidate this resource if needed
+      return res;
+    },
+      uncheck: async (id, data) => {
+      const res = await apiClient(`${basePath}/${id}/uncheck`, 'POST', data);
+      mutate(`${basePath}/${id}`); // Revalidate this resource if needed
+      return res;
     },
   };
 }
