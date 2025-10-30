@@ -36,7 +36,9 @@ import { mutate } from "swr";
 const serviceSchema = z.object({
   name: z.string().min(1, "Service name is required"),
   price: z.string().min(1, "Price is required"),
-  duration: z.string().min(1, "Duration is required"),
+  product_price: z.string().optional(),
+    duration: z.string().min(1, "Duration is required"),
+
   description: z.string().optional(),
   category_id: z.string().min(1, "Category is required"),
   type_id: z.string().min(1, "Type is required"),
@@ -74,6 +76,7 @@ export const UpdateServiceModal = ({
       duration: "",
       description: "",
       category_id: "",
+      product_price:'',
       type_id: "",
       discount: 0,
       rating: 0,
@@ -82,7 +85,7 @@ export const UpdateServiceModal = ({
   });
 
   // 🧠 Prefill all fields + image when service changes
-  console.log('service',service)
+  console.log('service------>>',service)
   useEffect(() => {
     if (service && open) {
       form.reset({
@@ -93,6 +96,7 @@ export const UpdateServiceModal = ({
         category_id: service.category_id?.toString() || service.category?.id?.toString() || "",
         type_id: service.type_id?.toString() || service.type?.id?.toString() || "",
         discount: service.discount || 0,
+        product_price:service.product_price,
         rating: service.rating || 0,
         file_id: service.file_id || undefined,
       });
@@ -168,7 +172,8 @@ export const UpdateServiceModal = ({
             />
 
             {/* Price + Duration */}
-            <div className="grid grid-cols-2 gap-4">
+           <div className="grid  gap-4">
+              <div className="grid grid-cols-2 gap-3">
               <FormField
                 control={form.control}
                 name="price"
@@ -176,12 +181,26 @@ export const UpdateServiceModal = ({
                   <FormItem>
                     <FormLabel>Price</FormLabel>
                     <FormControl>
-                      <Input placeholder="$0.00" {...field} />
+                      <Input placeholder="ETB 0.00" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="product_price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Product Price</FormLabel>
+                    <FormControl>
+                      <Input placeholder="ETB 0.00" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+</div>
 
               <FormField
                 control={form.control}

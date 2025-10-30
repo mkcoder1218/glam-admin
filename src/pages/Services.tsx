@@ -18,6 +18,7 @@ import {
   MoreVertical,
   ChevronRight,
   ChevronLeft,
+  Trash2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -31,7 +32,9 @@ import { api } from "@/lib/api";
 import { QueryParams } from "@/lib/utils";
 import { BASE_URL } from "@/lib/config";
 import { UpdateServiceModal } from "@/components/UpdateServiceModal";
-
+import { CreateCategoryModal } from "./CreateCategoryModal";
+import { CreateTypeModal } from "./CreateTypeModal";
+import { toast } from "sonner";
 
 const Services = () => {
   const [searchText, setSearchText] = useState("");
@@ -39,6 +42,7 @@ const Services = () => {
   const [pageSize, setPageSize] = useState(5);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<any>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const query: QueryParams = useMemo(
     () => ({
@@ -55,8 +59,11 @@ const Services = () => {
     [searchText, page, pageSize]
   );
 
-  const { data: serviceslist, isLoading: serviceLoading,mutate } =
-    api.service.getAll(query);
+  const {
+    data: serviceslist,
+    isLoading: serviceLoading,
+    mutate,
+  } = api.service.getAll(query);
 
   const services = serviceslist?.data?.map((item: any) => ({
     id: item?.id,
@@ -64,9 +71,10 @@ const Services = () => {
     name: item?.name,
     duration: item?.duration,
     price: item?.price,
-    description:item?.description,
-    category_id:item?.ServiceCategory?.id,
-    type_id:item?.CategoryType?.id,
+    description: item?.description,
+    category_id: item?.ServiceCategory?.id,
+    type_id: item?.CategoryType?.id,
+    product_price:item?.product_price,
     category: item?.ServiceCategory?.name,
     status: item?.rating,
   }));
@@ -82,6 +90,23 @@ const Services = () => {
   const handleNextPage = () =>
     setPage((prev) => Math.min(prev + 1, totalPages - 1));
 
+  const handleDeleteService = async (id: string) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this service?");
+    if (!confirmDelete) return;
+
+    try {
+      setDeleting(true);
+      await api.service.delete( id );
+      toast.success("Service deleted successfully!");
+      mutate(); // refresh list
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Failed to delete service");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="p-8 space-y-6">
@@ -92,12 +117,28 @@ const Services = () => {
               Manage your salon services and pricing
             </p>
           </div>
-          <CreateServiceModal onCreated={() => mutate()}>
-            <Button className="bg-gradient-primary">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Service
-            </Button>
-          </CreateServiceModal>
+          <div className="flex gap-3">
+            <CreateCategoryModal onCreated={() => mutate()}>
+              <Button variant="outline">
+                <Plus className="h-4 w-4" />
+                Add Category
+              </Button>
+            </CreateCategoryModal>
+
+            <CreateTypeModal onCreated={() => mutate()}>
+              <Button variant="outline">
+                <Plus className="h-4 w-4 " />
+                Add Type
+              </Button>
+            </CreateTypeModal>
+
+            <CreateServiceModal onCreated={() => mutate()}>
+              <Button className="bg-gradient-primary">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Service
+              </Button>
+            </CreateServiceModal>
+          </div>
         </div>
 
         <Card className="p-6 space-y-4">
@@ -127,11 +168,7 @@ const Services = () => {
               {services?.map((service) => (
                 <TableRow
                   key={service.id}
-                  onClick={() => {
-                    setSelectedService(service);
-                    setEditOpen(true);
-                  }}
-                  className="cursor-pointer hover:bg-muted/30"
+                  className="hover:bg-muted/30"
                 >
                   <TableCell>
                     <img
@@ -151,7 +188,9 @@ const Services = () => {
                   </TableCell>
                   <TableCell>
                     <Badge
-                      variant={service.status === "active" ? "default" : "outline"}
+                      variant={
+                        service.status === "active" ? "default" : "outline"
+                      }
                     >
                       {service.status}
                     </Badge>
@@ -164,8 +203,22 @@ const Services = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-popover">
-                        <DropdownMenuItem>Edit Service</DropdownMenuItem>
-                   
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelectedService(service);
+                            setEditOpen(true);
+                          }}
+                        >
+                          Edit Service
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-red-600 focus:text-red-600"
+                          onClick={() => handleDeleteService(service.id)}
+                          disabled={deleting}
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete Service
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -175,10 +228,20 @@ const Services = () => {
           </Table>
 
           {/* Pagination */}
-      <div className="flex justify-between items-center mt-4">
-            <Button onClick={handlePrevPage} disabled={page === 0}>Previous</Button>
-            <span>Page {page + 1} of {Math.max(1, Math.ceil((serviceslist?.meta?.total || 0) / pageSize))}</span>
-            <Button onClick={handleNextPage} disabled={page + 1 >= Math.ceil((serviceslist?.meta?.total || 0) / pageSize)}>Next</Button>
+          <div className="flex justify-between items-center mt-4">
+            <Button onClick={handlePrevPage} disabled={page === 0}>
+              Previous
+            </Button>
+            <span>
+              Page {page + 1} of{" "}
+              {Math.max(1, Math.ceil((serviceslist?.meta?.total || 0) / pageSize))}
+            </span>
+            <Button
+              onClick={handleNextPage}
+              disabled={page + 1 >= Math.ceil((serviceslist?.meta?.total || 0) / pageSize)}
+            >
+              Next
+            </Button>
           </div>
         </Card>
       </div>
@@ -188,7 +251,8 @@ const Services = () => {
         open={editOpen}
         onOpenChange={setEditOpen}
         service={selectedService}
- onUpdated={() => mutate()}        />
+        onUpdated={() => mutate()}
+      />
     </AdminLayout>
   );
 };

@@ -35,6 +35,7 @@ import { api } from "@/lib/api";
 const serviceSchema = z.object({
   name: z.string().min(1, "Service name is required"),
   price: z.string().min(1, "Price is required"),
+  product_price: z.string().optional(),
   duration: z.string().min(1, "Duration is required"),
   description: z.string().optional(),
   category_id: z.string().min(1, "Category is required"),
@@ -64,6 +65,7 @@ const {data:serviceType,isLoading:serviceTypeLoading}=api.categoryType.getAll()
     defaultValues: {
       name: "",
       price: "",
+      product_price:"",
       duration: "",
       description: "",
       category_id: "",
@@ -101,6 +103,7 @@ const {data:serviceType,isLoading:serviceTypeLoading}=api.categoryType.getAll()
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("price", data.price);
+    formData.append("product_price", data.product_price);
     formData.append("duration", data.duration);
     formData.append("description", data.description || "");
     formData.append("category_id", data.category_id);
@@ -152,7 +155,8 @@ const {data:serviceType,isLoading:serviceTypeLoading}=api.categoryType.getAll()
             />
 
             {/* price + duration */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid  gap-4">
+              <div className="grid grid-cols-2 gap-3">
               <FormField
                 control={form.control}
                 name="price"
@@ -160,13 +164,26 @@ const {data:serviceType,isLoading:serviceTypeLoading}=api.categoryType.getAll()
                   <FormItem>
                     <FormLabel>Price</FormLabel>
                     <FormControl>
-                      <Input placeholder="$0.00" {...field} />
+                      <Input placeholder="ETB 0.00" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
+              <FormField
+                control={form.control}
+                name="product_price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Product Price</FormLabel>
+                    <FormControl>
+                      <Input placeholder="ETB 0.00" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+</div>
               <FormField
                 control={form.control}
                 name="duration"

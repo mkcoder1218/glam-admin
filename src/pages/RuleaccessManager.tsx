@@ -188,16 +188,16 @@ export default function RoleAccessManager() {
 
             <div>
               <h3 className="font-semibold mb-2">Existing Roles</h3>
-              <div className="grid gap-2">
+              <div className="grid gap-2 grid-cols-4">
                 {resrole?.data?.length ? (
                   resrole.data.map((role: Role) => (
                     <div
                       key={role.id}
-                      className="flex items-center justify-between border rounded-lg px-3 py-2 hover:bg-muted/40 transition"
+                      className="flex items-center text-xs justify-between border rounded-lg px-2 py-1 hover:bg-muted/40 transition"
                     >
                       <div>
-                        <p className="font-medium">{role.name}</p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="font-medium ">{role.name}</p>
+                        <p className="text-xs text-muted-foreground">
                           {role.description || "No description"}
                         </p>
                       </div>
@@ -269,16 +269,16 @@ export default function RoleAccessManager() {
 
             <div>
               <h3 className="font-semibold mb-2">Existing Access Rules</h3>
-              <div className="grid gap-2">
+              <div className="grid grid-cols-4 gap-2">
                 {resroleaccess?.data?.length ? (
                   resroleaccess.data.map((rule: AccessRule) => (
                     <div
                       key={rule.id}
-                      className="flex items-center justify-between border rounded-lg px-3 py-2 hover:bg-muted/40 transition"
+                      className="flex items-center justify-between border rounded-lg px-2 py-1 hover:bg-muted/40 transition"
                     >
                       <div>
-                        <p className="font-medium">{rule.name}</p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="font-medium text-xs">{rule.name}</p>
+                        <p className="text-xs text-muted-foreground">
                           {rule.description || "No description"}
                         </p>
                       </div>
@@ -339,7 +339,7 @@ export default function RoleAccessManager() {
                   <SelectTrigger>
                     <SelectValue placeholder="Choose an access rule" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="">
                     {resroleaccess?.data?.map((rule: AccessRule) => (
                       <SelectItem key={rule.id} value={rule.id}>
                         {rule.name}

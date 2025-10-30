@@ -1,6 +1,7 @@
 import { createResource } from "./CreateResource";
 import { analyticsRoot } from "./types/analytics";
 import { BookingRoot } from "./types/booking";
+import { Booking_View } from "./types/bookingView";
 import { galleryRoot } from "./types/gallery";
 import { PointRoot } from "./types/point";
 import { PromoRoot } from "./types/promoCode";
@@ -21,6 +22,7 @@ export const api = {
   roleAccessrule: createResource<RoleAccessRoot>('/api/roleaccessrule'),
   gallery: createResource<galleryRoot>('/api/gallery'),
   booking: createResource<BookingRoot>('/api/booking'),
+  bookingview: createResource<Booking_View>('/api/bookings/view'),
   checkin: createResource<BookingRoot>('/api/booking'),
   uncheck: createResource<BookingRoot>('/api/booking'),
   service: createResource<ServiceRoot>('/api/service'),

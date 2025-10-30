@@ -11,12 +11,14 @@ import { AdminLayout } from "@/components/AdminLayout";
 export default function PointManager() {
   const [loading, setLoading] = useState(false);
   const [customPoint, setCustomPoint] = useState<string>("");
+  const [customRedeem, setCustomRedeem] = useState<string>("");
+  const [customGiveaway, setCustomGiveaway] = useState<string>("");
 
   const { data: pointData, isLoading: pointLoading, mutate } = api.point.getAll();
   const point = pointData?.data?.[0];
 
-  // ✅ Update point with a specific value
-  const updatePoint = async (value: number) => {
+  // ✅ Update function
+  const updatePoint = async (updateObj: { point?: number; reedem_amount?: number; give_away?: number }) => {
     if (!point) {
       toast.error("No point data found!");
       return;
@@ -24,37 +26,67 @@ export default function PointManager() {
 
     try {
       setLoading(true);
-      await api.point.update(point.id, { point: value as any });
-      toast.success(`Point updated to ${value}`);
+      await api.point.update(point.id, updateObj as any);
+
+      if (updateObj.point !== undefined) {
+        toast.success(`Point updated to ${updateObj.point}`);
+      }
+      if (updateObj.reedem_amount !== undefined) {
+        toast.success(`Redeem amount updated to ${updateObj.reedem_amount}`);
+      }
+      if (updateObj.give_away !== undefined) {
+        toast.success(`Give Away updated to ${updateObj.give_away}`);
+      }
+
       mutate();
     } catch (err: any) {
       console.error(err);
-      toast.error("Error updating point");
+      toast.error("Error updating data");
     } finally {
       setLoading(false);
       setCustomPoint("");
+      setCustomRedeem("");
+      setCustomGiveaway("");
     }
   };
 
-  // ✅ Increment and Decrement
+  // ✅ Increment / Decrement Points
   const handleIncrement = () => {
     if (!point) return;
-    updatePoint(point.point + 1);
+    updatePoint({ point: point.point + 1 });
   };
 
   const handleDecrement = () => {
     if (!point) return;
-    updatePoint(Math.max(point.point - 1, 0)); // prevent negative
+    updatePoint({ point: Math.max(point.point - 1, 0) }); // prevent negative
   };
 
-  // ✅ Handle custom input update
-  const handleCustomUpdate = () => {
+  // ✅ Handle custom input updates
+  const handleCustomPointUpdate = () => {
     const num = parseInt(customPoint);
     if (isNaN(num)) {
-      toast.error("Please enter a valid number");
+      toast.error("Please enter a valid number for points");
       return;
     }
-    updatePoint(num);
+    updatePoint({ point: num });
+  };
+
+  const handleCustomRedeemUpdate = () => {
+    const num = parseInt(customRedeem);
+    if (isNaN(num)) {
+      toast.error("Please enter a valid number for redeem amount");
+      return;
+    }
+    updatePoint({ reedem_amount: num });
+  };
+
+  const handleCustomGiveawayUpdate = () => {
+    const num = parseInt(customGiveaway);
+    if (isNaN(num)) {
+      toast.error("Please enter a valid number for giveaway amount");
+      return;
+    }
+    updatePoint({ give_away: num });
   };
 
   return (
@@ -102,7 +134,7 @@ export default function PointManager() {
                   </Button>
                 </div>
 
-                {/* Input for Custom Point */}
+                {/* Custom Point Input */}
                 <div className="space-y-2 mt-4">
                   <Input
                     type="number"
@@ -112,12 +144,58 @@ export default function PointManager() {
                     className="text-center"
                   />
                   <Button
-                    onClick={handleCustomUpdate}
+                    onClick={handleCustomPointUpdate}
                     disabled={loading || !customPoint}
                     className="w-full bg-gradient-primary hover:opacity-90 transition"
                   >
                     Update Point
                   </Button>
+                </div>
+
+                {/* Redeem Amount Input */}
+                <div className="space-y-2 mt-4">
+                  <Input
+                    type="number"
+                    placeholder="Enter redeem amount..."
+                    value={customRedeem}
+                    onChange={(e) => setCustomRedeem(e.target.value)}
+                    className="text-center"
+                  />
+                  <Button
+                    onClick={handleCustomRedeemUpdate}
+                    disabled={loading || !customRedeem}
+                    className="w-full bg-gradient-primary hover:opacity-90 transition"
+                  >
+                    Update Redeem Amount
+                  </Button>
+                </div>
+
+                {/* Give Away Input */}
+                <div className="space-y-2 mt-4">
+                  <Input
+                    type="number"
+                    placeholder="Enter give away amount..."
+                    value={customGiveaway}
+                    onChange={(e) => setCustomGiveaway(e.target.value)}
+                    className="text-center"
+                  />
+                  <Button
+                    onClick={handleCustomGiveawayUpdate}
+                    disabled={loading || !customGiveaway}
+                    className="w-full bg-gradient-primary hover:opacity-90 transition"
+                  >
+                    Update Give Away
+                  </Button>
+                </div>
+
+                {/* Display Current Values */}
+                <div className="text-sm text-muted-foreground mt-4 space-y-1">
+                  {(point as any).reedem_amount !== undefined && (
+                    <p>Current Redeem Amount: {(point as any).reedem_amount}</p>
+                  )}
+                  {(point as any).give_away !== undefined && (
+                    <p>Current Give Away: {(point as any).give_away}</p>
+                  )}
                 </div>
               </>
             )}
