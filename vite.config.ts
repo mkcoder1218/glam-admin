@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 4002,
+    allowedHosts: ["admin.glamnestsalon.com"], // <-- add your domain here
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
