@@ -37,7 +37,7 @@ export const AdminSidebar = () => {
 
   return (
     <>
-      <Sidebar collapsible="offcanvas" side="left">
+      <Sidebar collapsible="offcanvas" side="left" className="!z-[9999]">
         {/* Header (logo + collapse button) */}
         <div className="flex h-16 items-center justify-between px-4 border-b border-sidebar-border">
           {state !== "collapsed" && (

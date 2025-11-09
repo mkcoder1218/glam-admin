@@ -23,7 +23,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
         <div className="flex flex-1 flex-col">
 
           {/* Mobile-only top bar with trigger */}
-          <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b bg-background px-4 md:hidden">
+          <header className="sticky top-0 z-[40] flex h-16 items-center gap-3 border-b bg-background px-4 md:hidden">
             <SidebarTrigger className="">
               <Menu className="h-6 w-6" />
             </SidebarTrigger>

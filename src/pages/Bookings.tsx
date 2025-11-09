@@ -199,7 +199,7 @@ const Bookings = () => {
         </div>
 
         {/* Search + Table */}
-        <Card className="p-6">
+        <Card className="p-6 z-[20]">
           <div className="mb-6 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -210,18 +210,18 @@ const Bookings = () => {
           </div>
 
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Customer</TableHead>
-                <TableHead>Services</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Time</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Check-in</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
+            <thead className="!z-[10] text-gray-500">
+              
+                <th>Customer</th>
+                <th>Services</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Phone</th>
+                <th>Status</th>
+                <th>Check-in</th>
+                <th className="text-right">Actions</th>
+              
+            </thead>
             <TableBody>
               {filteredBookings.map((b) => (
                 <TableRow key={b.id}>
