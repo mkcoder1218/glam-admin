@@ -54,11 +54,11 @@ const BookingDetailsModal = ({
           <h3 className="text-lg font-semibold mb-2">Customer Info</h3>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <p>
-              <span className="font-medium">Name:</span> {booking.User.name}
+              <span className="font-medium">Name:</span> {booking?.User?.name}
             </p>
             <p>
               <span className="font-medium">Phone:</span>{" "}
-              {booking.User.phone_number}
+              {booking?.User?.phone_number}
             </p>
           </div>
         </div>
@@ -67,26 +67,25 @@ const BookingDetailsModal = ({
         <div className="mb-4 text-gray-700">
           <h3 className="text-lg font-semibold mb-2">Services</h3>
           <div className="space-y-2 text-xs">
-            {booking.booking_services.map((bs: any, index: number) => (
+            {booking?.booking_services?.map((bs: any, index: number) => (
               <div
                 key={index}
                 className="border rounded-lg p-2 flex flex-col gap-1"
               >
                 <p>
-                  <span className="font-medium">Name:</span>{" "}
-                  {bs.service.name}
+                  <span className="font-medium">Name:</span> {bs?.service?.name}
                 </p>
                 <p>
                   <span className="font-medium">Price:</span>{" "}
-                  {bs.service.price}
+                  {bs?.service?.price}
                 </p>
                 <p>
                   <span className="font-medium">Duration:</span>{" "}
-                  {bs.service.duration}
+                  {bs?.service?.duration}
                 </p>
                 <p>
                   <span className="font-medium">Person Type:</span>{" "}
-                  {bs.person_type}
+                  {bs?.person_type}
                 </p>
               </div>
             ))}
@@ -99,11 +98,11 @@ const BookingDetailsModal = ({
           <div className="grid grid-cols-2 text-xs gap-2">
             <p>
               <span className="font-medium">Date:</span>{" "}
-              {moment(booking.date).format("YYYY-MM-DD")}
+              {moment(booking?.date).format("YYYY-MM-DD")}
             </p>
             <p>
               <span className="font-medium">Time:</span>{" "}
-              {moment(booking.time, "HH:mm").format("hh:mm A")}
+              {moment(booking?.time, "HH:mm").format("hh:mm A")}
             </p>
             <p>
               <span className="font-medium">Status:</span>{" "}
@@ -116,12 +115,12 @@ const BookingDetailsModal = ({
                     : "outline"
                 }
               >
-                {booking.status}
+                {booking?.status}
               </Badge>
             </p>
             <p>
               <span className="font-medium">Checked In:</span>{" "}
-              {booking.is_checked_in ? (
+              {booking?.is_checked_in ? (
                 <Badge variant="default" className="bg-green-500">
                   <CheckCircle className="h-3 w-3 mr-1" />
                   Yes
@@ -136,7 +135,7 @@ const BookingDetailsModal = ({
             </p>
             <p>
               <span className="font-medium">Updated At:</span>{" "}
-              {moment(booking.updatedAt).format("YYYY-MM-DD hh:mm A")}
+              {moment(booking?.updatedAt).format("YYYY-MM-DD hh:mm A")}
             </p>
           </div>
         </div>
@@ -158,7 +157,9 @@ const BookingDetailsModal = ({
 const Bookings = () => {
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [hoveredCheckMap, setHoveredCheckMap] = useState<Record<string, boolean>>({});
+  const [hoveredCheckMap, setHoveredCheckMap] = useState<
+    Record<string, boolean>
+  >({});
 
   const handleMouseEnter = (id: string) =>
     setHoveredCheckMap((prev) => ({ ...prev, [id]: true }));
@@ -211,33 +212,31 @@ const Bookings = () => {
 
           <Table>
             <thead className="!z-[10] text-gray-500">
-              
-                <th>Customer</th>
-                <th>Services</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Phone</th>
-                <th>Status</th>
-                <th>Check-in</th>
-                <th className="text-right">Actions</th>
-              
+              <th>Customer</th>
+              <th>Services</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Phone</th>
+              <th>Status</th>
+              <th>Check-in</th>
+              <th className="text-right">Actions</th>
             </thead>
             <TableBody>
-              {filteredBookings.map((b) => (
-                <TableRow key={b.id}>
-                  <TableCell className="font-medium">{b.User.name}</TableCell>
+              {filteredBookings?.map((b) => (
+                <TableRow key={b?.id}>
+                  <TableCell className="font-medium">{b?.User?.name}</TableCell>
                   <TableCell>
-                    {b.booking_services.map((bs: any, i: number) => (
-                      <div key={i}>{bs.service.name}</div>
+                    {b?.booking_services?.map((bs: any, i: number) => (
+                      <div key={i}>{bs?.service?.name}</div>
                     ))}
                   </TableCell>
-                  <TableCell>{moment(b.date).format("YYYY-MM-DD")}</TableCell>
+                  <TableCell>{moment(b?.date).format("YYYY-MM-DD")}</TableCell>
                   <TableCell>
-                    {moment(b.time, "HH:mm").format("hh:mm A")}
+                    {moment(b?.time, "HH:mm").format("hh:mm A")}
                   </TableCell>
                   <TableCell>
                     <a
-                      href={`tel:${b.User?.phone_number}`}
+                      href={`tel:${b?.User?.phone_number}`}
                       className="transition-all duration-300 hover:text-blue-500"
                     >
                       {b.User?.phone_number}
@@ -245,7 +244,7 @@ const Bookings = () => {
                   </TableCell>
                   <TableCell>
                     <Select
-                      value={b.status}
+                      value={b?.status}
                       onValueChange={(value) => handleStatusUpdate(b.id, value)}
                     >
                       <SelectTrigger className="w-32">
@@ -260,7 +259,7 @@ const Bookings = () => {
                     </Select>
                   </TableCell>
                   <TableCell>
-                    {b.is_checked_in ? (
+                    {b?.is_checked_in ? (
                       <Badge
                         variant="default"
                         className="bg-green-500 cursor-pointer w-[100px] h-[18px] whitespace-nowrap flex items-center"
