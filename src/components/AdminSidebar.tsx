@@ -8,6 +8,7 @@ import {
   Coins,
   UserCircle,
   UserCheck2,
+  LogOut,
 } from "lucide-react";
 import {
   Sidebar,
@@ -20,6 +21,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/AuthContext";
 
 const menuItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -34,6 +36,11 @@ const menuItems = [
 
 export const AdminSidebar = () => {
   const { state, openMobile, setOpenMobile } = useSidebar();
+  const { logout } = useAuth();
+  const handleLogout = () => {
+    logout();
+    console.log("User logged out");
+  };
 
   return (
     <>
@@ -55,25 +62,21 @@ export const AdminSidebar = () => {
               <SidebarMenu>
                 {menuItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink
-                        to={item.url}
-                        end
-                        className={({ isActive }) =>
-                          `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                            isActive
-                              ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                              : "hover:bg-sidebar-accent/50"
-                          }`
-                        }
-                        // Close mobile drawer after navigation
-                        onClick={(e) => {
-                          openMobile && setOpenMobile(false)}}
-                      >
-                        <item.icon className="h-4 w-4" />
-                        {state !== "collapsed" && <span>{item.title}</span>}
-                      </NavLink>
-                    </SidebarMenuButton>
+                    <NavLink
+                      to={item.url}
+                      end
+                      onClick={() => openMobile && setOpenMobile(false)}
+                      className="w-full"
+                    >
+                      {({ isActive }) => (
+                        <SidebarMenuButton asChild isActive={isActive}>
+                          <div className="flex items-center gap-3">
+                            <item.icon className="h-4 w-4" />
+                            {state !== "collapsed" && <span>{item.title}</span>}
+                          </div>
+                        </SidebarMenuButton>
+                      )}
+                    </NavLink>
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
@@ -85,22 +88,31 @@ export const AdminSidebar = () => {
             <SidebarGroupLabel>Account</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
+                {/* Profile */}
                 <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to="/profile"
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                          isActive
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                            : "hover:bg-sidebar-accent/50"
-                        }`
-                      }
-                      onClick={() => openMobile && setOpenMobile(false)}
-                    >
-                      <UserCircle className="h-4 w-4" />
-                      {state !== "collapsed" && <span>Profile</span>}
-                    </NavLink>
+                  <NavLink
+                    to="/profile"
+                    onClick={() => openMobile && setOpenMobile(false)}
+                    className="w-full"
+                  >
+                    {({ isActive }) => (
+                      <SidebarMenuButton asChild isActive={isActive}>
+                        <div className="flex items-center gap-3">
+                          <UserCircle className="h-4 w-4" />
+                          {state !== "collapsed" && <span>Profile</span>}
+                        </div>
+                      </SidebarMenuButton>
+                    )}
+                  </NavLink>
+                </SidebarMenuItem>
+
+                {/* Logout */}
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild onClick={handleLogout}>
+                    <div className="flex items-center gap-3 cursor-pointer">
+                      <LogOut className="h-4 w-4" />
+                      {state !== "collapsed" && <span>Logout</span>}
+                    </div>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
