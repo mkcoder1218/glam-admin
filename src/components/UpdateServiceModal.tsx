@@ -37,7 +37,7 @@ const serviceSchema = z.object({
   name: z.string().min(1, "Service name is required"),
   price: z.string().min(1, "Price is required"),
   product_price: z.string().optional(),
-    duration: z.string().min(1, "Duration is required"),
+  duration: z.string().min(1, "Duration is required"),
 
   description: z.string().optional(),
   category_id: z.string().min(1, "Category is required"),
@@ -76,7 +76,7 @@ export const UpdateServiceModal = ({
       duration: "",
       description: "",
       category_id: "",
-      product_price:'',
+      product_price: "",
       type_id: "",
       discount: 0,
       rating: 0,
@@ -85,7 +85,7 @@ export const UpdateServiceModal = ({
   });
 
   // 🧠 Prefill all fields + image when service changes
-  console.log('service------>>',service)
+  console.log("service------>>", service);
   useEffect(() => {
     if (service && open) {
       form.reset({
@@ -93,10 +93,14 @@ export const UpdateServiceModal = ({
         price: service.price?.toString() || "",
         duration: service.duration?.toString() || "",
         description: service.description || "",
-        category_id: service.category_id?.toString() || service.category?.id?.toString() || "",
-        type_id: service.type_id?.toString() || service.type?.id?.toString() || "",
+        category_id:
+          service.category_id?.toString() ||
+          service.category?.id?.toString() ||
+          "",
+        type_id:
+          service.type_id?.toString() || service.type?.id?.toString() || "",
         discount: service.discount || 0,
-        product_price:service.product_price,
+        product_price: service.product_price,
         rating: service.rating || 0,
         file_id: service.file_id || undefined,
       });
@@ -109,9 +113,29 @@ export const UpdateServiceModal = ({
       }
     }
   }, [service, open, form]);
+  useEffect(() => {
+    if (!open) {
+      form.reset({
+        name: "",
+        price: "",
+        duration: "",
+        description: "",
+        category_id: "",
+        product_price: "",
+        type_id: "",
+        discount: 0,
+        rating: 0,
+        file_id: undefined,
+      });
+      setPreviewUrl(null);
+    }
+  }, [open, form]);
 
   // ⬆️ Handles file uploads
-  const handleFile = async (file: File | null, onChange: (value: any) => void) => {
+  const handleFile = async (
+    file: File | null,
+    onChange: (value: any) => void
+  ) => {
     if (file) {
       setPreviewUrl(URL.createObjectURL(file));
       const formData = new FormData();
@@ -121,7 +145,10 @@ export const UpdateServiceModal = ({
     }
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, onChange: (value: any) => void) => {
+  const handleDrop = (
+    e: React.DragEvent<HTMLDivElement>,
+    onChange: (value: any) => void
+  ) => {
     e.preventDefault();
     setDragActive(false);
     const file = e.dataTransfer.files?.[0];
@@ -130,9 +157,9 @@ export const UpdateServiceModal = ({
 
   const onSubmit = async (data: ServiceFormValues) => {
     try {
-  await api.service.update(service.id, data as any);
-  mutate("/api/service", undefined, { revalidate: true })
-      
+      await api.service.update(service.id, data as any);
+      mutate("/api/service", undefined, { revalidate: true });
+
       toast({
         title: "Service Updated",
         description: "The service has been successfully updated.",
@@ -172,35 +199,35 @@ export const UpdateServiceModal = ({
             />
 
             {/* Price + Duration */}
-           <div className="grid  gap-4">
+            <div className="grid  gap-4">
               <div className="grid grid-cols-2 gap-3">
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Price</FormLabel>
-                    <FormControl>
-                      <Input placeholder="ETB 0.00" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="product_price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Product Price</FormLabel>
-                    <FormControl>
-                      <Input placeholder="ETB 0.00" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-</div>
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Price</FormLabel>
+                      <FormControl>
+                        <Input placeholder="ETB 0.00" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="product_price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Product Price</FormLabel>
+                      <FormControl>
+                        <Input placeholder="ETB 0.00" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <FormField
                 control={form.control}
@@ -225,7 +252,10 @@ export const UpdateServiceModal = ({
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Describe the service..." {...field} />
+                    <Textarea
+                      placeholder="Describe the service..."
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -350,7 +380,9 @@ export const UpdateServiceModal = ({
                     }}
                     onDragLeave={() => setDragActive(false)}
                     className={`border-2 border-dashed rounded-md p-6 text-center cursor-pointer transition ${
-                      dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"
+                      dragActive
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-300"
                     }`}
                     onClick={() =>
                       document.getElementById("update-file-upload")?.click()

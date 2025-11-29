@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -50,22 +50,26 @@ type ServiceFormValues = z.infer<typeof serviceSchema>;
 
 interface CreateServiceModalProps {
   children: React.ReactNode;
-    onCreated?: () => void; // callback to refresh services
-
+  onCreated?: () => void; // callback to refresh services
 }
 
-export const CreateServiceModal = ({ children,onCreated }: CreateServiceModalProps) => {
+export const CreateServiceModal = ({
+  children,
+  onCreated,
+}: CreateServiceModalProps) => {
   const [open, setOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
-const {data:ServiceCategory,isLoading:serviceCategoryLoading}=api.serviceCategory.getAll()
-const {data:serviceType,isLoading:serviceTypeLoading}=api.categoryType.getAll()
+  const { data: ServiceCategory, isLoading: serviceCategoryLoading } =
+    api.serviceCategory.getAll();
+  const { data: serviceType, isLoading: serviceTypeLoading } =
+    api.categoryType.getAll();
   const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceSchema),
     defaultValues: {
       name: "",
       price: "",
-      product_price:"",
+      product_price: "",
       duration: "",
       description: "",
       category_id: "",
@@ -77,14 +81,17 @@ const {data:serviceType,isLoading:serviceTypeLoading}=api.categoryType.getAll()
     },
   });
 
-  const handleFile = async (file: File | null, onChange: (value: any) => void) => {
+  const handleFile = async (
+    file: File | null,
+    onChange: (value: any) => void
+  ) => {
     if (file) {
       onChange(file);
       setPreviewUrl(URL.createObjectURL(file));
-      const fileForm=new FormData()
-      console.log(file)
-      fileForm.append('file',file)
-      const res=await api.file.create(fileForm)
+      const fileForm = new FormData();
+      console.log(file);
+      fileForm.append("file", file);
+      const res = await api.file.create(fileForm);
       onChange((res as any)?.id);
     }
   };
@@ -117,19 +124,34 @@ const {data:serviceType,isLoading:serviceTypeLoading}=api.categoryType.getAll()
     // console.log(Object.fromEntries(formData.entries()));
     // await fetch("/api/services", { method: "POST", body: formData });
 
-    
-      api.service.create(form.control._formValues).then(()=>{
-        toast({
-      title: "Service created",
-      description: "The service has been created successfully.",
+    api.service.create(form.control._formValues).then(() => {
+      toast({
+        title: "Service created",
+        description: "The service has been created successfully.",
+      });
+      onCreated?.();
     });
-    onCreated?.();
-  })
     setOpen(false);
     // form.reset();
     setPreviewUrl(null);
   };
-
+  useEffect(() => {
+    if (!open) {
+      form.reset({
+        name: "",
+        price: "",
+        duration: "",
+        description: "",
+        category_id: "",
+        product_price: "",
+        type_id: "",
+        discount: 0,
+        rating: 0,
+        file_id: undefined,
+      });
+      setPreviewUrl(null);
+    }
+  }, [open, form]);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -157,33 +179,33 @@ const {data:serviceType,isLoading:serviceTypeLoading}=api.categoryType.getAll()
             {/* price + duration */}
             <div className="grid  gap-4">
               <div className="grid grid-cols-2 gap-3">
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Price</FormLabel>
-                    <FormControl>
-                      <Input placeholder="ETB 0.00" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="product_price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Product Price</FormLabel>
-                    <FormControl>
-                      <Input placeholder="ETB 0.00" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-</div>
+                <FormField
+                  control={form.control}
+                  name="price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Price</FormLabel>
+                      <FormControl>
+                        <Input placeholder="ETB 0.00" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="product_price"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Product Price</FormLabel>
+                      <FormControl>
+                        <Input placeholder="ETB 0.00" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <FormField
                 control={form.control}
                 name="duration"
@@ -207,7 +229,10 @@ const {data:serviceType,isLoading:serviceTypeLoading}=api.categoryType.getAll()
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Describe the service..." {...field} />
+                    <Textarea
+                      placeholder="Describe the service..."
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -221,15 +246,21 @@ const {data:serviceType,isLoading:serviceTypeLoading}=api.categoryType.getAll()
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                     {ServiceCategory?.data?.map((item)=>{return(<SelectItem value={item.id}>{item.name}</SelectItem>)}) }
-                     
+                      {ServiceCategory?.data?.map((item) => {
+                        return (
+                          <SelectItem value={item.id}>{item.name}</SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -243,15 +274,21 @@ const {data:serviceType,isLoading:serviceTypeLoading}=api.categoryType.getAll()
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {serviceType?.data?.map((type)=>{return(<SelectItem value={type?.id}>{type?.name}</SelectItem>)})}
-                  
+                      {serviceType?.data?.map((type) => {
+                        return (
+                          <SelectItem value={type?.id}>{type?.name}</SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -320,14 +357,19 @@ const {data:serviceType,isLoading:serviceTypeLoading}=api.categoryType.getAll()
                     }}
                     onDragLeave={() => setDragActive(false)}
                     className={`border-2 border-dashed rounded-md p-6 text-center cursor-pointer transition
-                      ${dragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"}`}
+                      ${
+                        dragActive
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-300"
+                      }`}
                     onClick={() => {
                       const input = document.getElementById("file-upload");
                       input?.click();
                     }}
                   >
                     <p className="text-sm text-gray-500">
-                      Drag & drop image here, or <span className="text-blue-600 underline">browse</span>
+                      Drag & drop image here, or{" "}
+                      <span className="text-blue-600 underline">browse</span>
                     </p>
                     <Input
                       id="file-upload"
@@ -356,7 +398,11 @@ const {data:serviceType,isLoading:serviceTypeLoading}=api.categoryType.getAll()
             />
 
             <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" className="bg-gradient-primary">

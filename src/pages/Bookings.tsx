@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, CheckCircle, X } from "lucide-react";
+import { Search, CheckCircle, X, CalendarIcon } from "lucide-react";
 import { api } from "@/lib/api";
 import {
   Select,
@@ -24,6 +24,13 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 
 // ----------------- Booking Details Modal -----------------
 const BookingDetailsModal = ({
@@ -49,7 +56,6 @@ const BookingDetailsModal = ({
           Booking Details
         </h2>
 
-        {/* ---- Customer Info ---- */}
         <div className="mb-4">
           <h3 className="text-lg font-semibold mb-2">Customer Info</h3>
           <div className="grid grid-cols-2 gap-2 text-xs">
@@ -63,7 +69,6 @@ const BookingDetailsModal = ({
           </div>
         </div>
 
-        {/* ---- Services ---- */}
         <div className="mb-4 text-gray-700">
           <h3 className="text-lg font-semibold mb-2">Services</h3>
           <div className="space-y-2 text-xs">
@@ -92,7 +97,6 @@ const BookingDetailsModal = ({
           </div>
         </div>
 
-        {/* ---- Booking Info ---- */}
         <div className="mb-4">
           <h3 className="text-lg font-semibold mb-2">Booking Info</h3>
           <div className="grid grid-cols-2 text-xs gap-2">
@@ -157,6 +161,11 @@ const BookingDetailsModal = ({
 const Bookings = () => {
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // ⭐ Date Filters
+  const [fromDate, setFromDate] = useState<Date | undefined>();
+  const [toDate, setToDate] = useState<Date | undefined>();
+
   const [hoveredCheckMap, setHoveredCheckMap] = useState<
     Record<string, boolean>
   >({});
@@ -166,8 +175,7 @@ const Bookings = () => {
   const handleMouseLeave = (id: string) =>
     setHoveredCheckMap((prev) => ({ ...prev, [id]: false }));
 
-  // 🔄 Fetch booking view instead of booking
-  const { data: bookingView, isLoading, mutate } = api.bookingview.getAll();
+  const { data: bookingView, mutate } = api.bookingview.getAll();
 
   const bookings = (bookingView as any[]) ?? [];
 
@@ -175,21 +183,32 @@ const Bookings = () => {
     api.booking.update(bookingId, { status }).then(() => mutate());
   };
 
-  // 🔍 Apply local filtering by customer/service name
+  // ⭐ Apply search + date filtering
   const filteredBookings = bookings.filter((b) => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    const userMatch = b.User?.name?.toLowerCase().includes(query);
-    const serviceMatch = b.booking_services.some((bs: any) =>
-      bs.service.name.toLowerCase().includes(query)
-    );
-    return userMatch || serviceMatch;
+    const date = moment(b.date, "YYYY-MM-DD").toDate();
+
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const userMatch = b.User?.name?.toLowerCase().includes(query);
+      const serviceMatch = b.booking_services.some((bs: any) =>
+        bs?.service?.name?.toLowerCase().includes(query)
+      );
+      if (!userMatch && !serviceMatch) return false;
+    }
+
+    // From date filter
+    if (fromDate && date < fromDate) return false;
+
+    // To date filter
+    if (toDate && date > toDate) return false;
+
+    return true;
   });
 
   return (
     <AdminLayout>
       <div className="p-8 space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-4xl font-bold mb-2">Booking Management</h1>
@@ -199,56 +218,110 @@ const Bookings = () => {
           </div>
         </div>
 
-        {/* Search + Table */}
-        <Card className="p-6 z-[20]">
-          <div className="mb-6 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search bookings by customer or service..."
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+        <Card className="p-6 z-[20] space-y-6">
+          <div className="grid grid-cols-4 gap-3">
+            <div className="relative flex items-end col-span-2">
+              <Search className="absolute left-5 top-[68%] transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by customer or service..."
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            {/* From Date */}
+            <div className="flex flex-col gap-1 justify-start">
+              <label className="text-xs font-semibold">From Date</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {fromDate
+                      ? moment(fromDate).format("YYYY-MM-DD")
+                      : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="p-0">
+                  <Calendar
+                    mode="single"
+                    selected={fromDate}
+                    onSelect={setFromDate}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* To Date */}
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold">To Date</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {toDate
+                      ? moment(toDate).format("YYYY-MM-DD")
+                      : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="p-0">
+                  <Calendar
+                    mode="single"
+                    selected={toDate}
+                    onSelect={setToDate}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
 
+          {/* Table */}
           <Table>
-            <thead className="!z-[10] text-gray-500">
-              <th>Customer</th>
-              <th>Services</th>
-              <th>Date</th>
-              <th>Time</th>
-              <th>Phone</th>
-              <th>Status</th>
-              <th>Check-in</th>
-              <th className="text-right">Actions</th>
-            </thead>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Customer</TableHead>
+                <TableHead>Services</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Time</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Check-in</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+
             <TableBody>
               {filteredBookings?.map((b) => (
                 <TableRow key={b?.id}>
-                  <TableCell className="font-medium">{b?.User?.name}</TableCell>
+                  <TableCell>{b?.User?.name}</TableCell>
+
                   <TableCell>
                     {b?.booking_services?.map((bs: any, i: number) => (
                       <div key={i}>{bs?.service?.name}</div>
                     ))}
                   </TableCell>
+
                   <TableCell>{moment(b?.date).format("YYYY-MM-DD")}</TableCell>
+
                   <TableCell>
                     {moment(b?.time, "HH:mm").format("hh:mm A")}
                   </TableCell>
+
                   <TableCell>
                     <a
                       href={`tel:${b?.User?.phone_number}`}
-                      className="transition-all duration-300 hover:text-blue-500"
+                      className="hover:text-blue-500"
                     >
                       {b.User?.phone_number}
                     </a>
                   </TableCell>
+
                   <TableCell>
                     <Select
                       value={b?.status}
                       onValueChange={(value) => handleStatusUpdate(b.id, value)}
                     >
                       <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Select status" />
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Pending">Pending</SelectItem>
@@ -258,11 +331,12 @@ const Bookings = () => {
                       </SelectContent>
                     </Select>
                   </TableCell>
+
                   <TableCell>
                     {b?.is_checked_in ? (
                       <Badge
                         variant="default"
-                        className="bg-green-500 cursor-pointer w-[100px] h-[18px] whitespace-nowrap flex items-center"
+                        className="bg-green-500 cursor-pointer w-[100px] h-[18px] flex items-center"
                         onClick={() => {
                           api.booking.uncheck(b?.id).then(() => mutate());
                         }}
@@ -284,10 +358,10 @@ const Bookings = () => {
                       </Button>
                     )}
                   </TableCell>
+
                   <TableCell className="text-right">
                     <Button
                       variant="ghost"
-                      size="sm"
                       onClick={() => setSelectedBooking(b)}
                     >
                       Details
@@ -299,7 +373,6 @@ const Bookings = () => {
           </Table>
         </Card>
 
-        {/* Details Modal */}
         {selectedBooking && (
           <BookingDetailsModal
             booking={selectedBooking}
