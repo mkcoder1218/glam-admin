@@ -163,7 +163,7 @@ const Users = () => {
       if (editingUser) {
         await api.user.update(editingUser.id, { ...form, point: Number(form.point) });
       } else {
-        await api.user.create({ ...form, point: Number(form.point) });
+        await api.regester.create({ ...form });
       }
       setIsModalOpen(false);
       setForm({ name: "", phone_number: "", point: "", status: "active", password: "", role_id: "" });

@@ -15,6 +15,7 @@ import { getUserRoot, ProfileRoot } from "./types/user";
 export const api = {
   auth: createResource<getUserRoot>("/api/auth/login"),
   user: createResource<getUserRoot>("/api/user"),
+  regester: createResource<getUserRoot>("/api/auth/register"),
   analytics: createResource<analyticsRoot>("/api/analytics"),
   role: createResource<RoleRoot>("/api/role"),
   point: createResource<PointRoot>("/api/points"),
